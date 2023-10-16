@@ -2,6 +2,7 @@ import csv #manage csv files
 from datetime import datetime #manage dates easily 
 import logging
 
+########################################
 # Constants for mapping columns in CSV with indexes of the array
 FIRST_NAME_COLUMN = 0
 LAST_NAME_COLUMN = 1
@@ -13,7 +14,7 @@ LAST_CHECK_IN_DATE_COLUMN = 6
 JOB_COLUMN = 7
 PHONE_COLUMN = 8
 COMPANY_COLUMN = 9
-CSV_COLUMN_SIZE = 10 #size of the CSV file
+CSV_COLUMN_SIZE = 10 #number of columns in the CSV file
 ########################################
 # Functions 
 
@@ -62,17 +63,16 @@ logging.basicConfig(filename='exceptions.log', level=logging.INFO, format='%(asc
 logging.info("New CSV file processing")
 
 for index, row in enumerate(rows):
-    if(len(row) != 10):
+    if(len(row) != CSV_COLUMN_SIZE): #row contains less fields 
         logging.error("Row: " + str(index) + " contains less fields than expected")
-    elif(all(item == "" for item in row)):
+    elif(all(item == "" for item in row)): #row is empty
         logging.error("Row: " + str(index) + " is empty")
     else:
-        row_dict = {field: value for field, value in zip(required_fields, row)}
-        if not all(row_dict[field] for field in required_fields) or (row[LAST_CHECK_IN_DATE_COLUMN] == ""):
+        if(row[STREET_COLUMN] == "" or row[ZIP_COLUMN] == "" or row[CITY_COLUMN] == "" or 
+           row[LAST_CHECK_IN_DATE_COLUMN] == "" or row[COMPANY_COLUMN] == ""): #a required field is empty (or more)
             logging.error("One or more required fields are empty in the row: " + str(index))
         else:
             filtered_rows.append(row)
- # se me cuela el check in
 
 logging.shutdown()
 
@@ -114,7 +114,7 @@ print("List of the jobs ordered alphabetically: " , show_customer_data(sorted_ro
 print("****************************************\n")
 
 ########################################
-# Close files 
+# Close file
 
 file.close()
 

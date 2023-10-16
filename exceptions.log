@@ -1,6 +1,0 @@
-2023-10-16 18:03:16,460 - INFO - New CSV file processing
-2023-10-16 18:03:16,463 - ERROR - Row: 2 is empty
-2023-10-16 18:03:16,463 - ERROR - One or more required fields are empty in the row: 6
-2023-10-16 18:03:16,463 - ERROR - One or more required fields are empty in the row: 7
-2023-10-16 18:03:16,464 - ERROR - One or more required fields are empty in the row: 8
-2023-10-16 18:03:16,464 - ERROR - Row: 10 contains less fields than expected
