@@ -17,17 +17,28 @@ COMPANY_COLUMN = 9
 CSV_COLUMN_SIZE = 10 #size of the CSV file
 ########################################
 
+# Functions used
+
+# @brief Function for showing the information
 def show_customer_data(rows):
     result = ""
     
-    if(isinstance(rows, list) and all(isinstance(sub_arr, list) for sub_arr in rows)): # is array of arrays
+    if(isinstance(rows, list) and all(isinstance(sub_arr, list) for sub_arr in rows)): # is array of arrays (rows)
         for row in rows:
-            result += (row[FIRST_NAME_COLUMN] + " " + row[LAST_NAME_COLUMN] + " - Last check in: " + row[LAST_CHECK_IN_DATE_COLUMN] + " - Job: " + row[JOB_COLUMN] + "\n")
-    else: #or only one array
+            result += "\n" + "- " + (row[FIRST_NAME_COLUMN] + " " + row[LAST_NAME_COLUMN] + " - Last check in: " + row[LAST_CHECK_IN_DATE_COLUMN] + " - Job: " + row[JOB_COLUMN])
+    else: #or only one array (one row)
         result += (rows[FIRST_NAME_COLUMN] + " " + rows[LAST_NAME_COLUMN] + " - Last check in: " + rows[LAST_CHECK_IN_DATE_COLUMN] + " - Job: " + rows[JOB_COLUMN])
 
-
     return result
+
+def get_job(row): #used as key for the sort function
+    return row[JOB_COLUMN]
+
+def get_full_name(row): #used as key for the sort function
+    return row[FIRST_NAME_COLUMN] + " " + row[LAST_NAME_COLUMN]
+
+########################################
+
 
 # Read data
 file = open('Sample test file - Sheet1.csv', 'r', encoding='utf-8')
@@ -37,15 +48,14 @@ csvreader = csv.reader(file)
 headers = []
 headers = next(csvreader)
 
-rows = [] #rows
+rows = [] 
 for row in csvreader:
-    rows.append(row) #rows
+    rows.append(row) 
 
-########################################
-
-# excepciones - usar logging lib y ver como procesarlas
+# Check exceptions
 
 filtered_rows = []
+sorted_rows_names = []
 required_fields = ["Street", "Zip", "City", "Last Check-In Date", "Company"]
 
 logging.basicConfig(filename='exceptions.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s') #INFO OR SUPERIOR
@@ -69,6 +79,8 @@ logging.shutdown()
 
 #########################################
 
+# Information retrievals
+
 earliest_check_in = None
 latest_check_in = None
 first_iteration = True
@@ -88,8 +100,9 @@ for filtered_row in filtered_rows:
         elif datetime.strptime(latest_check_in[LAST_CHECK_IN_DATE_COLUMN], "%d/%m/%Y") < check_in_date:
             latest_check_in = filtered_row
 
-sorted_rows_names = sorted(filtered_rows, key=lambda row: (FIRST_NAME_COLUMN, LAST_NAME_COLUMN))
-sorted_rows_jobs = sorted(filtered_rows, key=lambda row: (JOB_COLUMN))
+sorted_rows_names = sorted(filtered_rows, key=get_full_name)
+sorted_rows_jobs = sorted(filtered_rows, key=get_job)
+
 ########################################
 
 # Show data
@@ -98,14 +111,15 @@ print("\n****************************************")
 print("Customer with earliest check-in date: " , show_customer_data(earliest_check_in))
 print("Customer with latest check-in date: " , show_customer_data(latest_check_in))
 print("****************************************")
-print("List with customer’s full names ordered alphabetically: \n" , show_customer_data(sorted_rows_names))
+print("List with customer’s full names ordered alphabetically: " , show_customer_data(sorted_rows_names))
 print("****************************************")
-print("List of the jobs ordered alphabetically: \n" , show_customer_data(sorted_rows_jobs))
+print("List of the jobs ordered alphabetically: " , show_customer_data(sorted_rows_jobs))
 print("****************************************\n")
 ########################################
 """
 """
-file.close() #could use instead "with"
+
+file.close()
 
 
 
