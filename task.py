@@ -1,4 +1,3 @@
-#import pandas as pd 
 import csv #manage csv files
 from datetime import datetime #manage dates easily 
 import logging
@@ -16,8 +15,7 @@ PHONE_COLUMN = 8
 COMPANY_COLUMN = 9
 CSV_COLUMN_SIZE = 10 #size of the CSV file
 ########################################
-
-# Functions used
+# Functions 
 
 # @brief Function for showing the information
 def show_customer_data(rows):
@@ -31,16 +29,17 @@ def show_customer_data(rows):
 
     return result
 
+# @brief Function for getting the job of a certain row (array)
 def get_job(row): #used as key for the sort function
     return row[JOB_COLUMN]
 
+# @brief Function for getting the full name of a certain row (array)
 def get_full_name(row): #used as key for the sort function
     return row[FIRST_NAME_COLUMN] + " " + row[LAST_NAME_COLUMN]
 
 ########################################
-
-
 # Read data
+
 file = open('Sample test file - Sheet1.csv', 'r', encoding='utf-8')
 
 csvreader = csv.reader(file)
@@ -52,34 +51,33 @@ rows = []
 for row in csvreader:
     rows.append(row) 
 
+########################################
 # Check exceptions
 
 filtered_rows = []
-sorted_rows_names = []
 required_fields = ["Street", "Zip", "City", "Last Check-In Date", "Company"]
 
-logging.basicConfig(filename='exceptions.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s') #INFO OR SUPERIOR
+logging.basicConfig(filename='exceptions.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 logging.info("New CSV file processing")
 
-for row in rows:
+for index, row in enumerate(rows):
     if(len(row) != 10):
-        logging.error("Row contains less fields than expected")
+        logging.error("Row: " + str(index) + " contains less fields than expected")
     elif(all(item == "" for item in row)):
-        logging.error("Empty row found")
+        logging.error("Row: " + str(index) + " is empty")
     else:
         row_dict = {field: value for field, value in zip(required_fields, row)}
-        if not all(row_dict[field] for field in required_fields) or (row[LAST_CHECK_IN_DATE_COLUMN] == ""): # se me cuela el check in
-            logging.error("One or more required fields are empty in the row")
+        if not all(row_dict[field] for field in required_fields) or (row[LAST_CHECK_IN_DATE_COLUMN] == ""):
+            logging.error("One or more required fields are empty in the row: " + str(index))
         else:
-            #print(row)            
             filtered_rows.append(row)
-    
+ # se me cuela el check in
+
 logging.shutdown()
 
 #########################################
-
-# Information retrievals
+# Information retrieval
 
 earliest_check_in = None
 latest_check_in = None
@@ -104,7 +102,6 @@ sorted_rows_names = sorted(filtered_rows, key=get_full_name)
 sorted_rows_jobs = sorted(filtered_rows, key=get_job)
 
 ########################################
-
 # Show data
 
 print("\n****************************************")
@@ -115,33 +112,12 @@ print("List with customer’s full names ordered alphabetically: " , show_custom
 print("****************************************")
 print("List of the jobs ordered alphabetically: " , show_customer_data(sorted_rows_jobs))
 print("****************************************\n")
+
 ########################################
-"""
-"""
+# Close files 
 
 file.close()
 
 
 
-#doubt about exeptions
-#
-#Al ser los campos requeridos estos: : Street, Zip, City, Last Check-in Date and 
-#Company, si alguna fila tiene estos campos pero no tiene el nombre y/o la de trabajos, que deberia hacer para cuando me toque ordenar las filas por nombre y job
-
-""" Using pandas
-df = pd.read_csv('Sample test file - Sheet1.csv', encoding='utf-8')
-
-# Convierte la columna de fechas al formato datetime
-df['Last Check-In Date'] = pd.to_datetime(df['Last Check-In Date'], format='%d/%m/%Y', errors='coerce')
-
-# Encuentra la fecha más temprana y la más reciente
-earliest_check_in = df[df['Last Check-In Date'] == df['Last Check-In Date'].min()]
-latest_check_in = df[df['Last Check-In Date'] == df['Last Check-In Date'].max()]
-
-# Muestra los resultados
-print("Cliente con la fecha de check-in más temprana:")
-print(earliest_check_in)
-print("\nCliente con la fecha de check-in más reciente:")
-print(latest_check_in)
-"""
 
