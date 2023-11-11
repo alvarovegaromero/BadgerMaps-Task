@@ -1,0 +1,6 @@
+2023-11-11 17:29:51,650 - INFO - New CSV file processing
+2023-11-11 17:29:51,650 - ERROR - Row: 2 is empty
+2023-11-11 17:29:51,650 - ERROR - One or more required fields are empty in the row: 6
+2023-11-11 17:29:51,650 - ERROR - One or more required fields are empty in the row: 7
+2023-11-11 17:29:51,661 - ERROR - One or more required fields are empty in the row: 8
+2023-11-11 17:29:51,661 - ERROR - Row: 10 contains less fields than expected

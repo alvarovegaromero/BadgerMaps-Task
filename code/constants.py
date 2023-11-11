@@ -1,0 +1,12 @@
+# Constants for mapping columns in CSV with indexes of the array
+FIRST_NAME_COLUMN = 0
+LAST_NAME_COLUMN = 1
+STREET_COLUMN = 2
+ZIP_COLUMN = 3
+CITY_COLUMN = 4
+TYPE_COLUMN = 5
+LAST_CHECK_IN_DATE_COLUMN = 6
+JOB_COLUMN = 7
+PHONE_COLUMN = 8
+COMPANY_COLUMN = 9
+CSV_COLUMN_SIZE = 10 #number of columns in the CSV file
