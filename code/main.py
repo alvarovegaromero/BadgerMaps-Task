@@ -28,6 +28,11 @@ class DataProcessor:
     def check_exceptions(self):
         required_fields = ["Street", "Zip", "City", "Last Check-In Date", "Company"]
 
+        logging.basicConfig(filename='./exceptions/exceptions.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+        logging.info("New CSV file processing")
+
+
         for index, row in enumerate(self.rows):
             if len(row) != CSV_COLUMN_SIZE:
                 ExceptionLogger.log_error(f"Row: {index} contains fewer fields than expected")
