@@ -1,116 +1,91 @@
 import csv
 from datetime import datetime
-import logging
 
 from constants import *
+from exception_handler import ExceptionHandler
 
-class DataReader:
-    def __init__(self, file_path):
-        self.file_path = file_path
-        self.headers = []
+########################################
+# Functions
 
-    def read_data(self):
-        with open(self.file_path, 'r', encoding='utf-8') as file:
-            csvreader = csv.reader(file)
-            self.headers = next(csvreader)
-            return [row for row in csvreader]
+# @brief Function for showing the information
+def show_customer_data(rows):
+    result = ""
 
-class DataProcessor:
-    def __init__(self, rows):
-        self.filtered_rows = []
-        self.earliest_check_in = None
-        self.latest_check_in = None
-        self.sorted_rows_names = []
-        self.sorted_rows_jobs = []
+    if(isinstance(rows, list) and all(isinstance(sub_arr, list) for sub_arr in rows)): # is array of arrays (rows)
+        for row in rows:
+            result += "\n" + "- " + (row[FIRST_NAME_COLUMN] + " " + row[LAST_NAME_COLUMN] + " - Last check in: " + row[LAST_CHECK_IN_DATE_COLUMN] + " - Job: " + row[JOB_COLUMN])
+    else: #or only one array (one row)
+        result += (rows[FIRST_NAME_COLUMN] + " " + rows[LAST_NAME_COLUMN] + " - Last check in: " + rows[LAST_CHECK_IN_DATE_COLUMN] + " - Job: " + rows[JOB_COLUMN])
 
-        self.rows = rows
+    return result
 
-    def check_exceptions(self):
-        required_fields = ["Street", "Zip", "City", "Last Check-In Date", "Company"]
+# @brief Function for getting the job of a certain row (array)
+def get_job(row): #used as key for the sort function
+    return row[JOB_COLUMN]
 
-        logging.basicConfig(filename='./exceptions/exceptions.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+# @brief Function for getting the full name of a certain row (array)
+def get_full_name(row): #used as key for the sort function
+    return row[FIRST_NAME_COLUMN] + " " + row[LAST_NAME_COLUMN]
 
-        logging.info("New CSV file processing")
+########################################
+# Read data and Check exceptions
 
+file = open('./data/Sample test file - Sheet1.csv', 'r', encoding='utf-8')
+csvreader = csv.reader(file)
 
-        for index, row in enumerate(self.rows):
-            if len(row) != CSV_COLUMN_SIZE:
-                ExceptionLogger.log_error(f"Row: {index} contains fewer fields than expected")
-            elif all(item == "" for item in row):
-                ExceptionLogger.log_error(f"Row: {index} is empty")
-            else:
-                if any(row[col] == "" for col in [STREET_COLUMN, ZIP_COLUMN, CITY_COLUMN, LAST_CHECK_IN_DATE_COLUMN, COMPANY_COLUMN]):
-                    ExceptionLogger.log_error(f"One or more required fields are empty in the row: {index}")
-                else:
-                    self.filtered_rows.append(row)
+headers = next(csvreader)
 
-    def process_information(self):
-        first_iteration = True
+filtered_rows = []
+required_fields = ["Street", "Zip", "City", "Last Check-In Date", "Company"]
 
-        for filtered_row in self.filtered_rows:
-            if filtered_row[LAST_CHECK_IN_DATE_COLUMN] != "" and filtered_row[LAST_CHECK_IN_DATE_COLUMN] is not None:
-                check_in_date = datetime.strptime(filtered_row[LAST_CHECK_IN_DATE_COLUMN], "%d/%m/%Y")
+exception_handler = ExceptionHandler('exceptions')
+exception_handler.save_information("New CSV file processing")
 
-                if first_iteration:
-                    first_iteration = False
-                    self.earliest_check_in = filtered_row
-                    self.latest_check_in = filtered_row
+earliest_check_in = None
+latest_check_in = None
+first_iteration = True
 
-                if datetime.strptime(self.earliest_check_in[LAST_CHECK_IN_DATE_COLUMN], "%d/%m/%Y") > check_in_date:
-                    self.earliest_check_in = filtered_row
+for index, row in enumerate(csvreader):
+    if len(row) != CSV_COLUMN_SIZE: # row contains less fields
+        exception_handler.save_error(f"Row: {index} contains less fields than expected")
 
-                elif datetime.strptime(self.latest_check_in[LAST_CHECK_IN_DATE_COLUMN], "%d/%m/%Y") < check_in_date:
-                    self.latest_check_in = filtered_row
+    elif all(item == "" for item in row): # row is empty
+        exception_handler.save_error(f"Row: {index} is empty")
 
-        self.sorted_rows_names = sorted(self.filtered_rows, key=self.get_full_name)
-        self.sorted_rows_jobs = sorted(self.filtered_rows, key=self.get_job)
+    elif any(row[col] == "" for col in [STREET_COLUMN, ZIP_COLUMN, CITY_COLUMN, LAST_CHECK_IN_DATE_COLUMN, COMPANY_COLUMN]): # a required field is empty (or more)
+        exception_handler.save_error(f"One or more required fields are empty in the row: {index}")
 
-    def display_data(self):
-        print("\n****************************************")
-        print("Customer with earliest check-in date: ", self.show_customer_data(self.earliest_check_in))
-        print("Customer with latest check-in date: ", self.show_customer_data(self.latest_check_in))
-        print("****************************************")
-        print("List with customer’s full names ordered alphabetically: ", self.show_customer_data(self.sorted_rows_names))
-        print("****************************************")
-        print("List of the jobs ordered alphabetically: ", self.show_customer_data(self.sorted_rows_jobs))
-        print("****************************************\n")
+    # Information retrieval
+    elif row[LAST_CHECK_IN_DATE_COLUMN] != None and row[LAST_CHECK_IN_DATE_COLUMN] != '':
+        check_in_date = datetime.strptime(row[LAST_CHECK_IN_DATE_COLUMN], "%d/%m/%Y")
 
-    @staticmethod
-    def show_customer_data(rows):
-        result = ""
+        if first_iteration:
+            first_iteration = False
+            earliest_check_in = row
+            latest_check_in = row
 
-        if isinstance(rows, list) and all(isinstance(sub_arr, list) for sub_arr in rows):
-            for row in rows:
-                result += "\n" + "- " + (
-                        row[FIRST_NAME_COLUMN] + " " + row[LAST_NAME_COLUMN] + " - Last check in: " +
-                        row[LAST_CHECK_IN_DATE_COLUMN] + " - Job: " + row[JOB_COLUMN]
-                )
-        else:
-            result += (
-                    rows[FIRST_NAME_COLUMN] + " " + rows[LAST_NAME_COLUMN] + " - Last check in: " +
-                    rows[LAST_CHECK_IN_DATE_COLUMN] + " - Job: " + rows[JOB_COLUMN]
-            )
+        if datetime.strptime(earliest_check_in[LAST_CHECK_IN_DATE_COLUMN], "%d/%m/%Y") > check_in_date:
+            earliest_check_in = row
 
-        return result
+        elif datetime.strptime(latest_check_in[LAST_CHECK_IN_DATE_COLUMN], "%d/%m/%Y") < check_in_date:
+            latest_check_in = row
 
-    @staticmethod
-    def get_job(row):
-        return row[JOB_COLUMN]
+        filtered_rows.append(row)
 
-    @staticmethod
-    def get_full_name(row):
-        return row[FIRST_NAME_COLUMN] + " " + row[LAST_NAME_COLUMN]
+file.close()
 
-class ExceptionLogger:
-    @staticmethod
-    def log_error(message):
-        logging.error(message)
+########################################
+# Sort and Show data
 
-if __name__ == "__main__":
-    csv_handler = DataReader('./data/Sample test file - Sheet1.csv')
-    rows = csv_handler.read_data()
+sorted_rows_names = sorted(filtered_rows, key=get_full_name)
+sorted_rows_jobs = sorted(filtered_rows, key=get_job)
 
-    data_processor = DataProcessor(rows)
-    data_processor.check_exceptions()
-    data_processor.process_information()
-    data_processor.display_data()
+print("\n****************************************")
+print("Customer with earliest check-in date: " , show_customer_data(earliest_check_in))
+print("Customer with latest check-in date: " , show_customer_data(latest_check_in))
+print("****************************************")
+print("List with customer’s full names ordered alphabetically: " , show_customer_data(sorted_rows_names))
+print("****************************************")
+print("List of the jobs ordered alphabetically: " , show_customer_data(sorted_rows_jobs))
+print("****************************************\n")
+
