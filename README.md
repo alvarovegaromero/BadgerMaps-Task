@@ -1,3 +1,3 @@
-Task done for the tecnhical interview.
+Task done for the technical interview.
 
-All the information needed about the question and the solution can be found in this repository.
+The statement can be found in the file called "Task.pdf"
